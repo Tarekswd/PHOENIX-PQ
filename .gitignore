@@ -26,6 +26,9 @@ __pycache__/
 *.pyc
 .venv/
 
+# Editor/extension temp files (e.g. CLAUDE.md.tmp-<pid>-<ts>)
+*.tmp-*
+
 # OS
 .DS_Store
 Thumbs.db
