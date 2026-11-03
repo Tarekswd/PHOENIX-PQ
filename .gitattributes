@@ -1,0 +1,4 @@
+# Shell scripts must keep LF endings to run under Linux/WSL
+*.sh text eol=lf
+*.py text eol=lf
+*.c  text eol=lf

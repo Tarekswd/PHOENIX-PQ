@@ -1,0 +1,31 @@
+# Local agent / editor tooling (machine paths, telemetry, cost data)
+.claude/
+.cursor/
+.kiro/
+.github/hooks/
+.github/instructions/
+.github/copilot-instructions.md
+.vscode/
+.idea/
+
+# Unpublished security findings: kept private until coordinated disclosure (see SECURITY.md)
+experiments/**/results/
+experiments/**/out/
+private/
+
+# Build artifacts
+build*/
+*.o
+*.a
+*.so
+*.out
+vgcore.*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
