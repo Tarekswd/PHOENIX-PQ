@@ -55,6 +55,31 @@ static void sample_support(uint32_t *sup, int w) {
     for (int k = 0; k < w; k++) mark[sup[k]] = 0;
 }
 
+#ifdef HQC_SAMPLER
+/* Use HQC's own fast sampler (vect_sample_fixed_weight2, as in hqc_pke_encrypt) for r2, e, r1. */
+#include "symmetric.h"
+#include "vector.h"
+static void dense_to_support(const uint64_t *v, uint32_t *sup, int w) {
+    int k = 0;
+    for (uint32_t p = 0; p < PARAM_N && k < w; p++) if ((v[p >> 6] >> (p & 63)) & 1) sup[k++] = p;
+    if (k != w) { fprintf(stderr, "sampler weight %d != %d\n", k, w); exit(1); }
+}
+static void sample_encryption_randomness(uint32_t *r1, uint32_t *r2, uint32_t *e) {
+    static uint64_t vr1[VEC_N_SIZE_64], vr2[VEC_N_SIZE_64], ve[VEC_N_SIZE_64];
+    uint8_t theta[SEED_BYTES];
+    shake256_xof_ctx ctx;
+    if (getrandom(theta, sizeof theta, 0) != (ssize_t)sizeof theta) exit(1);
+    xof_init(&ctx, theta, SEED_BYTES);
+    memset(vr1, 0, sizeof vr1); memset(vr2, 0, sizeof vr2); memset(ve, 0, sizeof ve);
+    vect_sample_fixed_weight2(&ctx, vr2, PARAM_OMEGA_R);  // same order as hqc_pke_encrypt
+    vect_sample_fixed_weight2(&ctx, ve, PARAM_OMEGA_E);
+    vect_sample_fixed_weight2(&ctx, vr1, PARAM_OMEGA_R);
+    dense_to_support(vr2, r2, PARAM_OMEGA_R);
+    dense_to_support(ve, e, PARAM_OMEGA_E);
+    dense_to_support(vr1, r1, PARAM_OMEGA_R);
+}
+#endif
+
 #define NW VEC_N1N2_SIZE_64
 static inline void flip(uint64_t *v, uint32_t p) { if (p < PARAM_N1N2) v[p >> 6] ^= 1ULL << (p & 63); }
 
@@ -193,9 +218,13 @@ static int natural(double seconds, int per_key) {
             sample_support(x, PARAM_OMEGA);
             sample_support(y, PARAM_OMEGA);
         }
+#ifdef HQC_SAMPLER
+        sample_encryption_randomness(r1, r2, e);
+#else
         sample_support(r1, PARAM_OMEGA_R);
         sample_support(r2, PARAM_OMEGA_R);
         sample_support(e, PARAM_OMEGA_E);
+#endif
         memset(noise, 0, sizeof noise);
         add_product(noise, x, PARAM_OMEGA, r2, PARAM_OMEGA_R);
         add_product(noise, y, PARAM_OMEGA, r1, PARAM_OMEGA_R);

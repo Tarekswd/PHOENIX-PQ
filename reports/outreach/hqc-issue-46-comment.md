@@ -21,9 +21,10 @@ The issue and pq-verify's AUDITS.md both note that the effect of defect 1 on the
 
 **The proposed fix.** The patched decoder agreed with the ref decoder on all 1.68e9 real-noise blocks and on every crafted block.
 
-**Limits.**
-- Honest ciphertexts only. For crafted ciphertexts the decoders still differ; we would expect the FO re-encryption check to reject those either way, but we have not analysed it formally.
-- r1, r2, e are sampled uniformly, not with the fast sampler.
-- The DFR mapping uses an independent-block binomial model and reports only the relative change (about 1.3e-7 for HQC-1).
+**Checks.**
+- *Real sampler.* Re-running with HQC's own `vect_sample_fixed_weight2` for r2, e, r1 (another 4.9e8 blocks) gives the same rates within statistical error. For HQC-1, the ref error rate is 9.442e-4 vs 9.431e-4 with uniform supports.
+- *Crafted ciphertexts.* We built 5,000 HQC-1 ciphertexts with v = Truncate(u*y) + R, where R makes the two decoders disagree on 11-46 blocks each. A reference build and a build with only the RM decoder swapped to AVX2 returned identical shared secrets for all of them, as well as for 500 honest and 500 random ciphertexts. This is consistent with implicit rejection: K_bar = J(H(ek), sigma, c) does not depend on the decoded message.
+
+**Limits.** The DFR mapping uses an independent-block binomial model and reports only the relative change (about 1.3e-7 for HQC-1).
 
 Code and full write-up: https://github.com/Tarekswd/PHOENIX-PQ (`experiments/hqc-dfr/`, `reports/hqc-findpeaks-dfr.md`). Thanks to Nicholas Clifford Maino and pq-verify for the original report.

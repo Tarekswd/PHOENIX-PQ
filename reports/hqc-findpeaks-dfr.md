@@ -53,10 +53,41 @@ For a block with noise weight w, the true peak has magnitude `N2/2 - w`. The def
 
 The fixed AVX2 decoder agreed with the reference decoder on all 1.68e9 real-noise blocks and on all uniform-noise validation blocks (`fix_ne_ref = 0`), and it fixed every crafted block in the positive control. This independently supports the patch proposed in #46.
 
+## Check: HQC's own sampler instead of uniform supports
+
+`dfr_sim_hqcsampler` draws r2, e, r1 with HQC's `vect_sample_fixed_weight2`, from a fresh 32-byte theta, in the same order as `hqc_pke_encrypt`. A 10-minute run (another 4.9e8 blocks) gives the same numbers as the uniform model within statistical error:
+
+| | HQC-1 | HQC-3 | HQC-5 |
+|---|---|---|---|
+| Ref block error rate (HQC sampler) | 9.442e-4 | 7.058e-5 | 5.234e-4 |
+| Ref block error rate (uniform) | 9.431e-4 | 6.973e-5 | 5.204e-4 |
+| Mean block weight (HQC sampler / uniform) | 132.5 / 132.5 | 232.7 / 232.7 | 240.0 / 240.0 |
+| Bug-only errors (HQC sampler) | 0 / 2.88e8 | 0 / 1.08e8 | 0 / 9.49e7 |
+
+The sampler's non-uniformity does not change the result.
+
+## Crafted ciphertexts: does the decoder difference reach the shared secret?
+
+**Experiment** (`experiments/hqc-dfr/crafted.c`, `crafted.sh`; HQC-1):
+- With the secret key known, the test builds ciphertexts with `v = Truncate(u*y) + R`, where `R` is a word on which the reference and official AVX2 decoders disagree. In every crafted ciphertext, 11 to 46 of the 46 blocks disagreed (mean 22.9).
+- The same file is decapsulated by a reference build and by a build whose RM decoder is the AVX2 one, with nothing else changed.
+
+**Result:**
+- All 6,000 ciphertexts (5,000 crafted, 500 honest, 500 random) gave identical shared secrets in both builds.
+- All honest ones decapsulated correctly.
+- The crafted ones received distinct implicit-rejection keys.
+
+**Why** (matches the code):
+- A crafted ciphertext is not an honest encryption of whatever message either decoder returns, so the FO re-encryption check fails in both builds.
+- The output is then `K_bar = J(H(ek), sigma, c)` (`hqc_kem_decaps_internal`), which does not depend on the decoded message.
+- An attacker cannot instead build an *honest* ciphertext that lands in the disagreement region: the encryption noise r1, r2, e is fixed by `G(H(ek) || m || salt)`, and the decoder input also depends on the secret x, y.
+
+So the decoder difference affects only the failure rate of honest ciphertexts, computed above. It does not affect what decapsulation returns for malformed ones. Timing is separate (see reports/hqc-ct-audit.md, class B).
+
 ## Limits
 
-- Honest ciphertexts only. For maliciously crafted ciphertexts the two decoders can differ (pq-verify shows how to construct such blocks). Argument, not proven here: HQC-KEM's FO re-encryption check rejects such ciphertexts either way, so the difference should not reach the shared secret. This has not been analysed formally.
-- r1, r2, e are sampled uniformly. HQC's fast sampler (`vect_generate_random_support2`) is only approximately uniform. Not modelled.
+- The crafted-ciphertext test covers HQC-1 and one key per run; the argument above is general but not formally proven.
+- The main runs sample r1, r2, e uniformly; the check above with HQC's own sampler gives the same result.
 - Union bound and independence between competitors in the model. These were validated against simulation in the relevant regime (above), not proven.
 - Under the binomial model, the decryptions that dominate the DFR are skewed toward heavy blocks, where the defect cannot fire. The unconditional q used here therefore likely *over*-states the DFR effect.
 - One x86-64 host (AMD Ryzen 7 PRO 4750U), gcc 13.3.0.

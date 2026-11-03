@@ -26,4 +26,12 @@ sed 's/int32_t width = 1 << (5 + MULTIPLICITY \/ 2);/int32_t width = 1 << (6 + M
 $CC $COMMON $AVX_FL $AVX_INC -c "$O/reed_muller_fix.c" -o "$O/fix_rm.o"; rename "$O/fix_rm.o" fix
 
 $CC $COMMON -march=native $REF_INC "$HERE/dfr_sim.c" "$O/ref_rm.o" "$O/avx_rm.o" "$O/fix_rm.o" -o "$O/dfr_sim"
-echo "built $O/dfr_sim (HQC-$V)"
+
+# Variant using HQC's own sampler for r1, r2, e: needs the reference vector/XOF code
+mkdir -p "$O/lib"
+for f in "$S/src/ref/vector.c" "$S/src/common/symmetric.c" "$S/lib/fips202/fips202.c"; do
+    $CC $COMMON -DHQC_ARCH_REF=1 $REF_INC -c "$f" -o "$O/lib/$(basename "${f%.c}").o"
+done
+$CC $COMMON -march=native -DHQC_SAMPLER -DHQC_ARCH_REF=1 $REF_INC "$HERE/dfr_sim.c" "$O/ref_rm.o" "$O/avx_rm.o" "$O/fix_rm.o" \
+    "$O"/lib/*.o -o "$O/dfr_sim_hqcsampler"
+echo "built $O/dfr_sim and $O/dfr_sim_hqcsampler (HQC-$V)"
