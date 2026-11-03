@@ -47,9 +47,22 @@ There were 2374 raw reports, which reduce to 59 unique (kind, location) pairs ac
 - Unchanged: classes A, B, D. The A locations moved because the sampler was rewritten, but it is still variable-time by design.
 - New in v5.1.0: `keccak_inc_squeeze` reports in avx256. These come from the new buffered sampler's variable refill length (class A).
 
+## Result 2b: downstream copies (liboqs, PQClean)
+
+- Neither liboqs (`8adabb7`, 2026-11-03) nor PQClean (`0586a82`, 2026-08-04) ships HQC's AVX2 code. liboqs has only `pqc-hqc_hqc-{1,3,5}_ref`, and PQClean only `clean`. Neither carries the #39/#46 AVX2 decoder defects. pq-verify independently reports PQClean clean as VERIFIED.
+- liboqs imports HQC commit `161cd4f`, the exact commit cited in HQC issue #31 (`uint8_t` buffers passed as `uint64_t *`, which is alignment UB on Armv7). liboqs's `kem.c` keeps those casts (lines 124, 192, 200). liboqs's own integration patch already fixes the related 32-bit `BITMASK` issue (HQC #26). No liboqs issue tracks #31.
+- Cross-built liboqs (HQC only) for ARMv7 hard-float (gcc 13.3, `-mcpu` generic) and ran `test_kem` under qemu-arm 8.2.2: HQC-1/3/5 all pass. The `strd` instructions in liboqs `kem.c` are stack-relative zeroing. So there is no observed failure, but QEMU user mode may not model alignment traps; real Armv7 hardware is needed to settle it.
+- Upstream HQC `161cd4f` "ref" does not build for ARM at all (`src/ref/hqc.h` includes `<immintrin.h>`); liboqs's patch removes that.
+
+## Result 3: division-instruction scan
+
+- -O1, -O2, -O3: no `div`/`idiv` in any build.
+- v5.1.0: divisions only in `shake128`/`shake256` (-O0, -Os). These divide output length by the SHAKE rate, both public.
+- v5.0.0: one extra `div` in `reed_solomon_decode` (ref and avx256, gcc -Os). Absent in v5.1.0. Not investigated further, since the code was replaced.
+
 ## What this pass does not show
 
-- It does not show absence of leaks. Valgrind sees only executed paths and only branch or address dependence. It does not catch variable-latency instructions; the separate division scan (`divs.txt`) has not been reviewed yet.
+- It does not show absence of leaks. Valgrind sees only executed paths and only branch or address dependence. The division scan covers `div`/`idiv` only, not other variable-latency instructions.
 - No timing measurements yet. WSL2 cannot disable CPU boost, so timing results will be weak evidence.
 - One microarchitecture (x86-64 Zen 2), one parameter set (HQC-1), no ARM.
 

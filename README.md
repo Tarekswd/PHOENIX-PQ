@@ -13,6 +13,7 @@ The project charter, with phases, rules and success criteria, is in [IMPLEMENTAT
 | 0 Environment | Done ([reports/ENVIRONMENT.md](reports/ENVIRONMENT.md)) |
 | 1 Literature review | Done ([research/literature/phase1-review.md](research/literature/phase1-review.md)) |
 | 2 Direction 2: HQC constant-time audit | First pass done ([proposal](research/proposals/direction2-hqc-ct-audit.md), [report](reports/hqc-ct-audit.md)) |
+| HQC #46 decoder defect: DFR impact | Done ([report](reports/hqc-findpeaks-dfr.md), tooling in `experiments/hqc-dfr/`) |
 
 Research directions, chosen after Phase 1:
 
