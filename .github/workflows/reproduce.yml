@@ -1,0 +1,46 @@
+# Re-runs the cheap, deterministic parts of the HQC experiments on every push.
+# Long runs (Valgrind matrix, 15-minute DFR simulations, dudect) stay manual; see README.
+name: reproduce
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  hqc:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y clang libssl-dev
+
+      - name: Fetch HQC v5.1.0
+        run: git clone --quiet --depth 1 --branch v5.1.0 https://gitlab.com/pqc-hqc/hqc.git ../hqc
+
+      - name: Build matrix with KAT gate (HQC-1)
+        run: |
+          bash experiments/hqc-ct/build_matrix.sh ../hqc out/ct v5.1.0 1
+          # Only the known AVX2 strict-aliasing builds (HQC #39/#46) may fail
+          failing=$(awk -F'\t' 'NR > 1 && $2 != "PASS" {print $1}' out/ct/build_summary.tsv | sort | tr '\n' ' ')
+          echo "failing: $failing"
+          test "$failing" = "v5.1.0-avx256-gcc-O2-hqc1 v5.1.0-avx256-gcc-Os-hqc1 "
+
+      - name: DFR simulator positive controls (HQC-1/3/5)
+        run: |
+          for v in 1 3 5; do
+            bash experiments/hqc-dfr/build.sh ../hqc $v out/dfr/hqc$v
+            out/dfr/hqc$v/dfr_sim selftest 50
+          done
+
+      - name: Short natural-noise run and analysis
+        run: |
+          mkdir -p out/runs
+          out/dfr/hqc1/dfr_sim 20 > out/runs/natural_hqc1_1.txt
+          python3 experiments/hqc-dfr/analyze.py out/runs
+
+      - name: Crafted-ciphertext check
+        run: |
+          bash experiments/hqc-dfr/crafted.sh ../hqc out/crafted 200 20 | tee crafted.log
+          grep -q 'RESULT: identical' crafted.log

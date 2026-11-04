@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "PHOENIX-PQ: HQC implementation audit, decryption-failure impact analysis, and C2PRI of the HQC v5 transform"
+authors:
+  - family-names: Ahmadieh
+    given-names: Tarek
+repository-code: "https://github.com/Tarekswd/PHOENIX-PQ"
+license: MIT
+date-released: 2026-11-04

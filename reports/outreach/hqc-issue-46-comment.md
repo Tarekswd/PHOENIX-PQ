@@ -7,7 +7,7 @@ The issue and pq-verify's AUDITS.md both note that the effect of defect 1 on the
 | RM blocks under real decryption noise | 8.84e8 | 4.03e8 | 3.92e8 |
 | Reference RM block error rate p | 9.43e-4 | 6.97e-5 | 5.20e-4 |
 | Blocks where AVX2 was wrong and ref right | 0 | 0 | 0 |
-| 95% upper bound on that rate | 3.4e-9 | 7.5e-9 | 7.7e-9 |
+| 95% upper bound on that rate (blocks / only keys independent) | 3.4e-9 / 2.5e-6 | 7.5e-9 / 6.7e-6 | 7.7e-9 / 1.1e-5 |
 | Exact-model rate q | 7.8e-12 | 7.6e-33 | 7.3e-34 |
 | q / p | 8.3e-9 | 1.1e-28 | 1.4e-30 |
 

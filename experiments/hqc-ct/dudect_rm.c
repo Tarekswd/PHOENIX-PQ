@@ -67,17 +67,23 @@ int main(int argc, char **argv) {
     int w = atoi(argv[3]);
     uint64_t *t = malloc(n * sizeof *t), *sorted = malloc(n * sizeof *t);
     uint8_t *cls = malloc(n);
-    static uint64_t fixed[NW], fresh[NW], out[VEC_N1_SIZE_64];
+    static uint64_t fixed[NW], out[VEC_N1_SIZE_64];
+    enum { BATCH = 4096 };  // inputs are prepared per batch, before any timing (dudect methodology)
+    uint64_t(*in)[NW] = malloc(BATCH * sizeof *in);
     make_word(fixed, w);
-    for (long i = 0; i < n; i++) {
-        cls[i] = rnd() & 1;
-        if (cls[i]) make_word(fresh, w);
-        const uint64_t *in = cls[i] ? fresh : fixed;
-        unsigned aux;
-        uint64_t t0 = __rdtscp(&aux);
-        dec(out, in);
-        uint64_t t1 = __rdtscp(&aux);
-        t[i] = t1 - t0;
+    for (long b = 0; b < n; b += BATCH) {
+        long nb = n - b < BATCH ? n - b : BATCH;
+        for (long j = 0; j < nb; j++) {  // both classes get their own buffer, so memory layout is identical
+            cls[b + j] = rnd() & 1;
+            if (cls[b + j]) make_word(in[j], w); else memcpy(in[j], fixed, sizeof fixed);
+        }
+        for (long j = 0; j < nb; j++) {
+            unsigned aux;
+            uint64_t t0 = __rdtscp(&aux);
+            dec(out, in[j]);
+            uint64_t t1 = __rdtscp(&aux);
+            t[b + j] = t1 - t0;
+        }
     }
     memcpy(sorted, t, n * sizeof *t);
     qsort(sorted, n, sizeof *t, cmp_u64);

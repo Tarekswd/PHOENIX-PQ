@@ -19,7 +19,9 @@
 | 2026-11-03 | 5 | Class E resolved (E1 clang x,y-sampling branch: real, already suppressed in liboqs; E2 clang -O1 gf_mul); HQC-3/5 CT matrix; dudect: AVX2 find_peaks timing measurable (t=98) |
 | 2026-11-03 | 5 | DFR study re-run with HQC's own sampler (same result); crafted-ciphertext test: 6,000 cts, identical decaps outputs ref vs AVX2 decoder |
 | 2026-11-04 | 2 (Dir. 1) | G1.2: v5 transform not covered by ABK25/KSW; classical-ROM C2PRI proof sketch (research/g1.2-hqc-v5-c2pri.md) |
-| 2026-11-04 | 7 | Paper draft, 6 pages, compiles cleanly: paper/main.tex, paper/main.pdf. Needs author name and expert review (Phase 8) |
+| 2026-11-04 | 7 | Paper draft, 6 pages, compiles cleanly: paper/main.tex, paper/main.pdf. Sole author: Tarek Ahmadieh |
+| 2026-11-04 | - | Code review fixes: dudect inputs prepared before timing (control bias removed; AVX2 \|t\| = 88.4, ref <= 1.5); dependence-robust zero-event bounds; popcount block weights. Spec 2025-08-22 checked against code. MIT license, CITATION.cff, CI workflow (verified locally) |
+| next | 8 | Independent review of the C2PRI sketch by a cryptographer; post outreach drafts; push |
 
 ## Next (after approval)
 - Resolve Q1-Q3 by reading primary sources (FIPS 207 status, ABK25 full text, CT-KAT).

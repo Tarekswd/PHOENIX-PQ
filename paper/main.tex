@@ -4,7 +4,7 @@
 \usepackage[T1]{fontenc}
 
 \title{Implementation Defects in HQC's Optimized Decoder:\\ Reproduction, Downstream Exposure,\\ Decryption-Failure Impact, and C2PRI of the v5 Transform}
-\author{AUTHOR NAME\thanks{Draft. Tooling and data: \protect\url{https://github.com/Tarekswd/PHOENIX-PQ}.}}
+\author{Tarek Ahmadieh\thanks{Draft. Tooling and data: \protect\url{https://github.com/Tarekswd/PHOENIX-PQ}.}}
 \date{Draft of 4 November 2026}
 
 \begin{document}
@@ -15,7 +15,7 @@ HQC was selected by NIST in March 2025 as a backup KEM to ML-KEM; its standard (
 Most defects we find are already tracked upstream; we reproduce them independently and add four results.
 (i) For the AVX2 Reed--Muller peak-search defect (HQC issue~\#46), whose effect on the decryption failure rate (DFR) had not been estimated, we combine $1.68\times 10^{9}$ blocks of simulated real decryption noise with an exact per-weight model. The defect adds about $7.8\times10^{-12}$ block errors per block for HQC-1 ($q/p\approx 8\times 10^{-9}$) and essentially none for HQC-3/5, so its DFR impact is negligible.
 (ii) With crafted ciphertexts that make the reference and AVX2 decoders disagree on up to all 46 blocks, decapsulation outputs remain identical in 6{,}000 trials.
-(iii) The known secret-dependent branch in the AVX2 decoder is measurable by dudect ($|t|=98$ against $6$ for the reference decoder), and a known Clang-introduced branch in key sampling runs on the long-term key in every decapsulation.
+(iii) The known secret-dependent branch in the AVX2 decoder is measurable by dudect ($|t|=88$ against at most $1.5$ for the reference decoder), and a known Clang-introduced branch in key sampling runs on the long-term key in every decapsulation.
 (iv) The KEM transform changed in v5 and is not covered by published C2PRI or binding analyses; we give a classical-ROM proof sketch that it is C2PRI, which would let hybrid combiners omit the HQC ciphertext from key derivation.
 \end{abstract}
 
@@ -65,7 +65,7 @@ Location & Builds & Assessment\\\hline
 A scan for \texttt{div}/\texttt{idiv}, motivated by KyberSlash~\cite{KyberSlash}, finds none at \texttt{-O1} to \texttt{-O3}. At \texttt{-O0} and \texttt{-Os} it finds divisions only in SHAKE, where both operands are public.
 
 \section{Timing of the known decoder branch}\label{sec:timing}
-We ran a dudect~\cite{dudect17} fixed-vs-random Welch test on HQC-1 Reed--Muller decoding at block noise weight 132, with $2\times10^6$ interleaved measurements on a pinned core. The AVX2 decoder gives $|t|$ up to 98.4: fresh inputs take about 150--240 more cycles (0.5--0.8\%). The branch-free reference decoder, used as a control, stays at $|t|\le 6.4$.
+We ran a dudect~\cite{dudect17} fixed-vs-random Welch test on HQC-1 Reed--Muller decoding at block noise weight 132, with $2\times10^6$ interleaved measurements on a pinned core. Inputs for each batch of 4{,}096 measurements are prepared before timing, in separate buffers for both classes. The AVX2 decoder gives $|t|$ up to 88.4: fresh inputs take about 70--260 more cycles (0.2--0.8\%). The branch-free reference decoder, used as a control, stays at $|t|\le 1.5$.
 
 This turns the \cite{HQC11} entry from a tool report into a measured timing dependence. It does not quantify what an attacker learns from it.
 
@@ -88,7 +88,8 @@ A positive control builds blocks $N_2/4-1$ flips from the sent codeword and $N_2
 Real-noise blocks simulated & $8.84\times10^8$ & $4.03\times10^8$ & $3.92\times10^8$\\
 Reference block error rate $p$ & $9.43\times10^{-4}$ & $6.97\times10^{-5}$ & $5.20\times10^{-4}$\\
 Defect-only errors observed & 0 & 0 & 0\\
-95\% upper bound on $q$ & $3.4\times10^{-9}$ & $7.5\times10^{-9}$ & $7.7\times10^{-9}$\\
+95\% bound on $q$, blocks independent & $3.4\times10^{-9}$ & $7.5\times10^{-9}$ & $7.7\times10^{-9}$\\
+95\% bound on $q$, only keys independent & $2.5\times10^{-6}$ & $6.7\times10^{-6}$ & $1.1\times10^{-5}$\\
 Model $q$ & $7.8\times10^{-12}$ & $7.6\times10^{-33}$ & $7.3\times10^{-34}$\\
 Mean block weight & 132.5 & 232.7 & 240.0\\\hline
 \end{tabular}
@@ -141,7 +142,8 @@ The argument does not need $c$ to decrypt correctly.
 \item Valgrind observes only executed paths, and our division scan covers only \texttt{div}/\texttt{idiv}.
 \item The DFR mapping assumes independent blocks; we report only relative changes, never an absolute DFR.
 \item The crafted-ciphertext experiment covers HQC-1.
-\item The C2PRI argument is a sketch in the classical ROM. We checked it against the code, not against the specification text.
+\item The C2PRI argument is a sketch in the classical ROM. We checked the transform against both the code and the 2025-08-22 specification.
+\item Blocks of one encryption share noise and each simulated key serves 16 encryptions, so the per-block zero-event bound in Table~\ref{tab:dfr} is optimistic. The per-key bound is rigorous but loose; the validated exact model is the main evidence.
 \end{itemize}
 
 \section{Conclusion}

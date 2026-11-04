@@ -14,7 +14,8 @@ HQC issue #46 (reported by Nicholas Clifford Maino using pq-verify) describes tw
 | Encryptions simulated | 19,219,136 | 7,192,384 | 4,350,592 |
 | Reference RM block error rate p | 9.43e-4 | 6.97e-5 | 5.20e-4 |
 | Bug-only errors observed (AVX2 wrong, reference right) | 0 | 0 | 0 |
-| Simulation 95% upper bound on bug rate q | 3.4e-9 | 7.5e-9 | 7.7e-9 |
+| Simulation 95% upper bound on q, blocks treated as independent | 3.4e-9 | 7.5e-9 | 7.7e-9 |
+| Same, only keys treated as independent (rigorous, loose) | 2.5e-6 | 6.7e-6 | 1.1e-5 |
 | Exact-model bug rate q per block | 7.8e-12 | 7.6e-33 | 7.3e-34 |
 | q / p | 8.3e-9 | 1.1e-28 | 1.4e-30 |
 | Relative DFR increase (independent-block binomial model) | ~1.3e-7 | ~0 | ~0 |
@@ -85,6 +86,8 @@ The sampler's non-uniformity does not change the result.
 So the decoder difference affects only the failure rate of honest ciphertexts, computed above. It does not affect what decapsulation returns for malformed ones. Timing is separate (see reports/hqc-ct-audit.md, class B).
 
 ## Limits
+
+- Blocks within an encryption share noise, and each simulated key serves 16 encryptions. So the zero-event bound that treats blocks as independent is optimistic. The bound that treats only keys as independent is rigorous but loose. The exact model, validated per weight, is the main evidence; the simulation's role is the per-weight validation and the positive control.
 
 - The crafted-ciphertext test covers HQC-1 and one key per run; the argument above is general but not formally proven.
 - The main runs sample r1, r2, e uniformly; the check above with HQC's own sampler gives the same result.

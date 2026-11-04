@@ -104,8 +104,12 @@ def main():
             q_model += a[0] / blocks * pb
         print(f"  model ref error rate (uniform-in-block, union bound): {p_ref_model:.3e}  vs simulated {p_ref_emp:.3e}")
         print(f"  model bug-only rate q: {q_model:.3e}   q / p_ref = {q_model / p_ref_emp:.3e}")
+        # Blocks of one encryption share noise and keys are reused (dfr_sim default: 16 encryptions/key),
+        # so the per-block bound assumes independence; the per-key bound does not (q <= P(event in a key's run)).
+        keys = c.get("keys", -(-c["trials"] // 16))
         if c["bug_only"] == 0:
-            print(f"  simulation upper bound on q (95%, zero events): {3 / blocks:.2e}")
+            print(f"  simulation 95% upper bound on q, zero events: {3 / blocks:.2e} (blocks independent), "
+                  f"{3 / keys:.2e} (only keys independent, {keys:,} keys)")
 
         # Per-weight check for weights with enough reference errors
         print("  per-weight ref error: simulated vs model (weights with >= 50 sim errors)")
@@ -125,7 +129,7 @@ def main():
         l0 = binom_tail_log2(N1, p_ref_emp, delta + 1)
         l1 = binom_tail_log2(N1, p_ref_emp + q_model, delta + 1)
         print(f"  binomial-model DFR: log2 {l0:.2f} -> {l1:.2f}  (relative increase {2 ** (l1 - l0) - 1:.2e}; first-order (delta+1)*q/p = {(delta + 1) * q_model / p_ref_emp:.2e})")
-        results[f"HQC-{v}"] = dict(blocks=blocks, encryptions=c["trials"], p_ref=p_ref_emp, p_ref_model=p_ref_model,
+        results[f"HQC-{v}"] = dict(blocks=blocks, encryptions=c["trials"], keys=keys, p_ref=p_ref_emp, p_ref_model=p_ref_model,
                                    q_model=q_model, q_over_p=q_model / p_ref_emp, bug_only_sim=c["bug_only"],
                                    fix_ne_ref_sim=c["fix_ne_ref"], mean_w=mean_w, light_fraction=light,
                                    dfr_rel_increase=2 ** (l1 - l0) - 1)

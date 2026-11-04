@@ -51,10 +51,22 @@ Method: secrets are marked undefined for Valgrind memcheck (the ctgrind techniqu
 
 Raw results stay out of the repository until coordinated disclosure, see [SECURITY.md](SECURITY.md).
 
+## Reproducing the decryption-failure study (HQC issue #46)
+
+```sh
+cd experiments/hqc-dfr
+for v in 1 3 5; do bash build.sh ../../../hqc $v out/hqc$v; out/hqc$v/dfr_sim selftest 300; done
+bash run_all.sh out runs 900        # ~15 min on 16 threads: real-noise runs + fixed-weight validation
+python3 analyze.py runs             # exact model vs simulation, failure-rate impact
+bash crafted.sh ../../../hqc out/crafted 5000 500   # decapsulation outputs, reference vs AVX2 decoder
+```
+
+CI (`.github/workflows/reproduce.yml`) re-runs the build matrix with its KAT gate, the simulator's positive controls, a short simulation with analysis, and the crafted-ciphertext check on every push. The Valgrind matrix, the long simulations and dudect stay manual.
+
+## Citation and license
+
+See [CITATION.cff](CITATION.cff). Code and text are released under the [MIT License](LICENSE). Author: Tarek Ahmadieh.
+
 ## Tracking
 
 [PROGRESS](research/PROGRESS.md) · [DECISIONS](research/DECISIONS.md) · [OPEN_QUESTIONS](research/OPEN_QUESTIONS.md) · [FAILED_HYPOTHESES](research/FAILED_HYPOTHESES.md) · [ASSUMPTIONS](research/ASSUMPTIONS.md) · [SECURITY_STATUS](reports/SECURITY_STATUS.md)
-
-## License
-
-Not yet chosen. Until a license is added, all rights are reserved by the author.

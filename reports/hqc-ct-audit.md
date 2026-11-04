@@ -80,8 +80,10 @@ The same 20-build matrix for HQC-3 and HQC-5 (v5.1.0) gives the same picture as 
 
 | Decoder | Median cycles | Max \|t\| over crops | Reading |
 |---|---|---|---|
-| Reference, gcc -O3 (control) | 55,947 | 6.4 (one crop; others <= 4.4) | borderline, consistent with environment noise |
-| Official AVX2, gcc -O3 | 29,716 | **98.4** | input-dependent timing, ~150-240 cycles (0.5-0.8%) slower on fresh inputs |
+| Reference, gcc -O3 (control) | 57,630 | 1.54 | no input dependence detected |
+| Official AVX2, gcc -O3 | 31,739 | **88.4** | input-dependent timing, ~70-260 cycles (0.2-0.8%) slower on fresh inputs |
+
+Inputs for each batch of 4,096 measurements are prepared before any timing, in separate buffers for both classes. A first version generated each class-1 input right before timing it, which biased the control to |t| = 6.4. That version's numbers are superseded.
 
 Fresh inputs are slower, which is the signature of a data-dependent branch that the predictor can learn for a fixed input. This turns the #11 "Reed-Muller" item from a tool report into a measured timing difference. It does not show *which* secret bits leak or how many traces an attack needs.
 

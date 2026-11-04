@@ -91,9 +91,10 @@ static void add_product(uint64_t *v, const uint32_t *a, int wa, const uint32_t *
         }
 }
 
+_Static_assert(PARAM_N2 % 64 == 0, "blocks must be word-aligned for block_weight");
 static int block_weight(const uint64_t *v, int blk) {  // noise bits in block blk
     int w = 0;
-    for (int b = blk * PARAM_N2; b < (blk + 1) * PARAM_N2; b++) w += (v[b >> 6] >> (b & 63)) & 1;
+    for (int i = blk * (PARAM_N2 / 64); i < (blk + 1) * (PARAM_N2 / 64); i++) w += __builtin_popcountll(v[i]);
     return w;
 }
 
@@ -261,6 +262,7 @@ static int natural(double seconds, int per_key) {
     }
 
     printf("param N1=%d N2=%d OMEGA=%d OMEGA_R=%d OMEGA_E=%d\n", PARAM_N1, PARAM_N2, PARAM_OMEGA, PARAM_OMEGA_R, PARAM_OMEGA_E);
+    printf("keys %lu\n", (trials + per_key - 1) / per_key);
     printf("trials %lu\nblocks %lu\nref_err %lu\navx_err %lu\nfix_err %lu\nbug_only %lu\navx_only_right %lu\navx_ne_ref %lu\nfix_ne_ref %lu\n",
            trials, blocks, ref_err, avx_err, fix_err, bug_only, avx_only_right, avx_ne_ref, fix_ne_ref);
     for (int w = 0; w <= PARAM_N2; w++)
