@@ -14,6 +14,8 @@ The project charter, with phases, rules and success criteria, is in [IMPLEMENTAT
 | 1 Literature review | Done ([research/literature/phase1-review.md](research/literature/phase1-review.md)) |
 | 2 Direction 2: HQC constant-time audit | First pass done ([proposal](research/proposals/direction2-hqc-ct-audit.md), [report](reports/hqc-ct-audit.md)) |
 | HQC #46 decoder defect: DFR impact | Done ([report](reports/hqc-findpeaks-dfr.md), tooling in `experiments/hqc-dfr/`) |
+| Direction 1, G1.2: C2PRI of HQC v5 transform | Proof sketch ([note](research/g1.2-hqc-v5-c2pri.md)) |
+| 7 Paper | Draft ([paper/main.pdf](paper/main.pdf), source `paper/main.tex`) |
 
 Research directions, chosen after Phase 1:
 

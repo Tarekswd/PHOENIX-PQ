@@ -21,6 +21,13 @@ build*/
 *.out
 vgcore.*
 
+# LaTeX intermediates (main.pdf is kept)
+paper/*.aux
+paper/*.log
+paper/*.bbl
+paper/*.blg
+paper/*.out
+
 # Python
 __pycache__/
 *.pyc
