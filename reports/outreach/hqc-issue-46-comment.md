@@ -27,4 +27,6 @@ The issue and pq-verify's AUDITS.md both note that the effect of defect 1 on the
 
 **Limits.** The DFR mapping uses an independent-block binomial model and reports only the relative change (about 1.3e-7 for HQC-1).
 
-Code and full write-up: https://github.com/Tarekswd/PHOENIX-PQ (`experiments/hqc-dfr/`, `reports/hqc-findpeaks-dfr.md`). Thanks to Nicholas Clifford Maino and pq-verify for the original report.
+Code and full write-up: https://github.com/Tarekswd/PHOENIX-PQ (`experiments/hqc-dfr/`, `reports/hqc-findpeaks-dfr.md`; draft paper `paper/main.pdf`, Section 6). Thanks to Nicholas Clifford Maino and pq-verify for the original report.
+
+— Tarek Ahmadieh
