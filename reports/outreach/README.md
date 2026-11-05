@@ -2,23 +2,22 @@
 
 | # | File | Recipient | Channel | Contents |
 |---|---|---|---|---|
-| 1 | [1-hqc-team.md](1-hqc-team.md) | HQC team | New work item at gitlab.com/pqc-hqc/hqc (their README asks for reports there), or their mailing list | Everything: #39/#46 reproduction, DFR impact of #46, crafted ciphertexts, Clang branch not in #11, dudect timing of the #11 RM branch, C2PRI of the v5 transform |
+| 1 | [1-hqc-team.md](1-hqc-team.md) | HQC team | New work item at gitlab.com/pqc-hqc/hqc (their README asks for reports there), or their mailing list | Everything: #39/#46 reproduction, DFR impact of #46, crafted ciphertexts, Clang branch not in #11, dudect timing of the #11 RM branch |
 | 1b | [hqc-issue-46-comment.md](hqc-issue-46-comment.md) | HQC #46 thread | Comment on gitlab.com/pqc-hqc/hqc/-/issues/46 | The DFR result only, for readers of that issue |
 | 2 | [2-liboqs-issues.md](2-liboqs-issues.md) | liboqs maintainers | Two public GitHub issues (A: HQC #31 casts; B: root cause of suppressed Clang branch) | Public per liboqs SECURITY.md: documented constant-time behaviour and a hardening issue |
-| 3 | [3-review-request-abk25.md](3-review-request-abk25.md) | Alagic, Bajaj, Kocoglu (ePrint 2025/1444) | Email, to the contact addresses on their ePrint page | Request to review the C2PRI sketch (charter Phase 8) |
+
+A review-request email about a C2PRI proof sketch was **withdrawn** on 2026-11-05: the result is already proven in Starfighters (IEEE S&P 2026). See research/FAILED_HYPOTHESES.md, F3.
 
 ## Order
 
 1. **HQC first.** liboqs issue B says the Clang branch is also being reported upstream.
 2. Then the liboqs issues.
-3. Then the review request. It can go in parallel; it does not depend on the others.
 
 ## Before sending
 
-- [ ] `git push`. Every message links to files on GitHub `main`: `reports/hqc-findpeaks-dfr.md`, `reports/hqc-ct-audit.md`, `research/g1.2-hqc-v5-c2pri.md`, `paper/main.pdf`.
+- [ ] `git push`. The messages link to files on GitHub `main`: `reports/hqc-findpeaks-dfr.md`, `reports/hqc-ct-audit.md`, `paper/main.pdf`.
 - [ ] Open https://github.com/Tarekswd/PHOENIX-PQ and check that those links work.
-- [ ] Attach `paper/main.pdf` to messages 1 and 3.
-- [ ] For the email (3): use the addresses exactly as listed on https://eprint.iacr.org/2025/1444.
+- [ ] Attach `paper/main.pdf` to message 1.
 
 ## Numbers used in these messages (all from this repository's runs)
 

@@ -3,7 +3,7 @@
 \usepackage{amsmath,amssymb,url}
 \usepackage[T1]{fontenc}
 
-\title{Implementation Defects in HQC's Optimized Decoder:\\ Reproduction, Downstream Exposure,\\ Decryption-Failure Impact, and C2PRI of the v5 Transform}
+\title{Implementation Defects in HQC's Optimized Decoder:\\ Reproduction, Downstream Exposure,\\ and Decryption-Failure Impact}
 \author{Tarek Ahmadieh\thanks{Draft. Tooling and data: \protect\url{https://github.com/Tarekswd/PHOENIX-PQ}.}}
 \date{Draft of 4 November 2026}
 
@@ -16,7 +16,7 @@ Most defects we find are already tracked upstream; we reproduce them independent
 (i) For the AVX2 Reed--Muller peak-search defect (HQC issue~\#46), whose effect on the decryption failure rate (DFR) had not been estimated, we combine $1.68\times 10^{9}$ blocks of simulated real decryption noise with an exact per-weight model. The defect adds about $7.8\times10^{-12}$ block errors per block for HQC-1 ($q/p\approx 8\times 10^{-9}$) and essentially none for HQC-3/5, so its DFR impact is negligible.
 (ii) With crafted ciphertexts that make the reference and AVX2 decoders disagree on up to all 46 blocks, decapsulation outputs remain identical in 6{,}000 trials.
 (iii) The known secret-dependent branch in the AVX2 decoder is measurable by dudect ($|t|=88$ against at most $1.5$ for the reference decoder), and a known Clang-introduced branch in key sampling runs on the long-term key in every decapsulation.
-(iv) The KEM transform changed in v5 and is not covered by published C2PRI or binding analyses; we give a classical-ROM proof sketch that it is C2PRI, which would let hybrid combiners omit the HQC ciphertext from key derivation.
+(iv) Together with the known C2PRI of HQC's v5 transform, these results support HQC as the code-based component of hybrid KEMs, and identify the key-sampling code that a constant-time hybrid must harden.
 \end{abstract}
 
 \section{Introduction}
@@ -30,7 +30,7 @@ The implementation is under active third-party audit. Upstream tracks compiler-i
 \item A timing measurement of the known AVX2 decoder branch (\S\ref{sec:timing}).
 \item The first estimate of the DFR impact of the \#46 peak-search defect, with a validated exact model (\S\ref{sec:dfr}), and an experiment showing the decoder difference does not reach decapsulation outputs (\S\ref{sec:crafted}).
 \item A downstream check of liboqs and PQClean (\S\ref{sec:down}).
-\item A proof sketch that HQC v5's transform is C2PRI (\S\ref{sec:c2pri}).
+\item A discussion of how these results bear on HQC in hybrid combiners, whose C2PRI requirement is already proven~\cite{Starfighters} (\S\ref{sec:c2pri}).
 \end{itemize}
 
 \section{Setup}
@@ -112,29 +112,10 @@ This is what the transform predicts. A ciphertext that is not an honest encrypti
 \item Cross-built for ARMv7 and run under QEMU user mode, liboqs's HQC KEM tests pass for all three parameter sets. QEMU may not model alignment traps, so real hardware is still needed.
 \end{itemize}
 
-\section{C2PRI of the HQC v5 transform}\label{sec:c2pri}
-\paragraph{The gap.} ABK25~\cite{ABK25} prove C2PRI for the $U^{\perp}$, $U^{\not\perp}$, $U_m^{\perp}$ and $U_m^{\not\perp}$ transforms. Their HQC theorem models the 2024 specification, in which $K=H(m,u,v)$ and the salt is not bound; KSW~\cite{KSW24} analyse round-4 HQC.
+\section{Context: HQC in hybrid combiners}\label{sec:c2pri}
+Since v5.0.0 (specification of 2025-08-22~\cite{HQCspec25}), HQC derives $(K\|\theta)=G(H(ek)\|m\|\mathit{salt})$ and rejects with $\bar K=J(H(ek)\|\sigma\|c)$; we confirmed this in both the code and the specification. Connolly et al.~\cite{Starfighters} analyse exactly this salted, $U_m$-based transform. They prove it C2PRI with bounds $(q+3)/2^{256}$ classically and $8(2q+3)^2/2^{256}$ in the QROM, and conclude that HQC can be used in X-Wing's QSF combiner~\cite{XWing24}. ABK25~\cite{ABK25} give the general multi-KEM combiner theorem (their Theorem~8) and an HQC bound for the earlier 2024 transform; KSW~\cite{KSW24} analyse binding for round-4 HQC.
 
-\paragraph{The v5 transform.} Since v5.0.0 (specification of 2025-08-22~\cite{HQCspec25}), HQC derives
-\[
-(K\|\theta)=G(H(ek)\|m\|\mathit{salt}), \qquad c=(\mathrm{Enc}(ek,m;\theta),\mathit{salt}),
-\]
-and rejects with $\bar K=J(H(ek)\|\sigma\|u\|v\|\mathit{salt})$, where $G$ is SHA3-512, $J$ is SHA3-256, both domain-separated, and $|K|=256$ bits. This structure resembles ML-KEM's. To our knowledge no published analysis covers it.
-
-\paragraph{Claim (sketch, classical ROM).} Model $G_1$ (the $K$ part of $G$) and $J$ as independent random oracles. An adversary that is given $(ek,dk,c,K)$ and makes $q_G,q_J$ queries outputs $c^*\ne c$ with $\mathrm{Decaps}(dk,c^*)=K$ with probability at most
-\[
-\frac{(q_G+2)^2+(q_J+2)^2}{2^{257}}+\frac{q_G+q_J+2}{2^{256}}.
-\]
-
-\paragraph{Proof sketch.} There are four cases:
-\begin{itemize}
-\item Both $c$ and $c^*$ pass re-encryption. Then $(m^*,\mathit{salt}^*)\ne(m,\mathit{salt})$, since otherwise $\theta^*=\theta$ forces $c^*=c$. So the adversary has found a $G_1$ collision.
-\item Exactly one of them passes. Then an output of one oracle must equal a fixed output of the other.
-\item Both fail. Then $J$ collides on distinct inputs, because $J$ hashes all of $(u,v,\mathit{salt})$.
-\end{itemize}
-The argument does not need $c$ to decrypt correctly.
-
-\paragraph{Consequence.} If the claim holds, ABK25's Theorem~8 lets split-key-PRF hybrid combiners omit the HQC ciphertext from key derivation, as X-Wing~\cite{XWing24} does for ML-KEM. For HQC-1 that is 4{,}433 bytes per handshake. A QROM proof, along the lines of ABK25's O2H-based argument, remains open.
+Our results are complementary. C2PRI is a property of the specification, whereas a hybrid deployment runs an implementation. Sections~\ref{sec:dfr} and~\ref{sec:crafted} show that the optimized decoder's peak-search defect affects only the honest failure rate, negligibly, and never the decapsulation output. Section~\ref{sec:ct} shows the Clang-compiled key sampling is the part of HQC's reference code that a constant-time hybrid would need to harden.
 
 \section{Limitations}
 \begin{itemize}
@@ -142,12 +123,11 @@ The argument does not need $c$ to decrypt correctly.
 \item Valgrind observes only executed paths, and our division scan covers only \texttt{div}/\texttt{idiv}.
 \item The DFR mapping assumes independent blocks; we report only relative changes, never an absolute DFR.
 \item The crafted-ciphertext experiment covers HQC-1.
-\item The C2PRI argument is a sketch in the classical ROM. We checked the transform against both the code and the 2025-08-22 specification.
 \item Blocks of one encryption share noise and each simulated key serves 16 encryptions, so the per-block zero-event bound in Table~\ref{tab:dfr} is optimistic. The per-key bound is rigorous but loose; the validated exact model is the main evidence.
 \end{itemize}
 
 \section{Conclusion}
-HQC's optimized decoder had real defects, but they were already being found and fixed upstream. For the one defect whose consequence was open, the answer is reassuring: its effect on the decryption failure rate is negligible, and it does not reach decapsulation outputs. The v5 transform appears to be C2PRI under the same reasoning as ML-KEM, which matters for hybrid deployments. A formal (Q)ROM treatment of that claim is the most useful next step.
+HQC's optimized decoder had real defects, but they were already being found and fixed upstream. For the one defect whose consequence was open, the answer is reassuring: its effect on the decryption failure rate is negligible, and it does not reach decapsulation outputs. Combined with the known C2PRI of the v5 transform~\cite{Starfighters}, this supports using HQC as the code-based component of hybrid KEMs. A constant-time, benchmarked hybrid implementation is the natural next step.
 
 \bibliographystyle{plain}
 \bibliography{refs}

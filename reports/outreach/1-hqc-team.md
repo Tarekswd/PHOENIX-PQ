@@ -1,6 +1,6 @@
 **Send via:** a new work item on https://gitlab.com/pqc-hqc/hqc (the README asks for reports there), or the HQC mailing list if you have its address. Attach `paper/main.pdf`.
 
-**Subject:** HQC v5.1.0 implementation audit: DFR impact of #46, a Clang constant-time issue not in #11, timing of the #11 Reed-Muller branch, and C2PRI of the v5 transform
+**Subject:** HQC v5.1.0 implementation audit: DFR impact of #46, a Clang constant-time issue not in #11, and timing of the #11 Reed-Muller branch
 
 ---
 
@@ -53,24 +53,9 @@ dudect fixed-vs-random Welch test on HQC-1 RM decoding (noise weight 132, 2e6 me
 
 This was measured under WSL2 with CPU boost enabled, so it shows input dependence, not an attack cost.
 
-**5. C2PRI of the v5 KEM transform**
+**Context for hybrids.** Connolly et al., "Starfighters" (IEEE S&P 2026, ePrint 2025/1397), prove C2PRI for your 2025-08-22 transform and show HQC works in X-Wing's QSF combiner. Results 1 and 2 above add the implementation side: the decoder defect does not undermine that, and result 3 marks the code a constant-time hybrid would need to harden.
 
-Alagic-Bajaj-Kocoglu (ePrint 2025/1444) prove C2PRI for HQC as specified on 2024-10-30, where K = H(m, u, v). Krämer-Struck-Weishäupl (ePrint 2024/1233) analyse round-4 HQC. Since v5.0.0, and in the 2025-08-22 specification (I checked both the code and the PDF), the transform is:
-
-```
-(K || theta) = G(H(ek) || m || salt)
-K_bar = J(H(ek) || sigma || c_KEM)
-```
-
-I did not find a published C2PRI or binding analysis of it. A classical-ROM sketch gives
-
-```
-Pr[c* != c, Decaps(c*) = K] <= ((q_G + 2)^2 + (q_J + 2)^2) / 2^257 + (q_G + q_J + 2) / 2^256
-```
-
-with a four-case argument, one case for each combination of c and c* passing or failing re-encryption. If correct, split-key-PRF hybrid combiners could omit the 4,433-byte HQC-1 ciphertext from key derivation. A QROM version is not done. I would welcome your view on whether this matches your intended security argument.
-
-Limitations of all of the above: one x86-64 host (Zen 2) under WSL2; Valgrind sees only executed paths; the crafted-ciphertext test covers HQC-1; the C2PRI argument is an unreviewed sketch.
+Limitations of all of the above: one x86-64 host (Zen 2) under WSL2; Valgrind sees only executed paths; the crafted-ciphertext test covers HQC-1.
 
 Thank you for the open tracker and the KAT files, which made this audit possible.
 
