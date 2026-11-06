@@ -50,6 +50,22 @@ No report was attributed to PHX-Tri's own code or to the hardened HQC selection 
 - **What it tests.** In OpenSSL 3.0.13 (crypto/ec/curve25519.c:5616-5623), `ossl_x25519` performs the scalar multiplication and then returns `CRYPTO_memcmp(kZeros, out_shared_key, 32) != 0`, commented "The all-zero output results when the input is a point of small order".
 - **Conclusion.** The comparison is constant-time, and the branch reveals only whether the result is all-zero. That happens exactly for small-order peer points, a property of the *public* input. Benign.
 
+### 3b. dudect timing of decapsulation (`phx-tri/ct/dudect_phx_tri.c`)
+
+Setup: fixed-vs-random Welch t-test; inputs prepared per batch of 256 before timing; GCC -O3; core 3 pinned; nothing else running; WSL2 with CPU boost on.
+
+| Test | What varies in class 1 | N | Max \|t\| over 5 crops | Result |
+|---|---|---|---|---|
+| `ct` | fresh valid ciphertexts, same key | 20,000 | 1.25 | no dependence detected |
+| `reject` | ct_M and ct_H each with one bit flipped (implicit rejection) | 20,000 | 0.98 | no dependence detected |
+| `key` | fresh key pairs (positive control: HQC's rejection sampler does vary with the key) | 6,000 | 1.70 | **not detected, so the control failed** |
+
+- **The positive control failed.** The `key` test should differ: HQC's rejection sampler makes key derivation time depend on the secret seed by design (reports/hqc-ct-audit.md, class A). dudect did not detect it. The timings were extremely noisy, with class means moving from about 28M to 69M cycles across crop levels, so these runs can resolve only large differences.
+- **What this means for `ct` and `reject`.** Their "no dependence detected" is weak evidence. It rules out large ciphertext- or rejection-dependent timing on this host. It says nothing about effects of the size of the rejection sampler's.
+- **What would be needed.** A quiet bare-metal Linux machine with frequency scaling and boost disabled, many more measurements, and the `key` control detected first. Not available here.
+- **What they do not mean, in any case.** They are not proofs, and they are limited to this host.
+- **Machine slowdown.** During these runs the median decapsulation took about 79.8M cycles, against 32.7M in the section 4 benchmark, most likely thermal or power throttling on the laptop {unverified}. Both classes were interleaved under the same conditions, so the comparison stands, but absolute times from this run are not benchmarks.
+
 ## 4. Performance (GCC -O3, AMD Ryzen 7 PRO 4750U, WSL2, pinned core, median of 201)
 
 | Operation | Cycles |
@@ -89,6 +105,7 @@ Limits: QEMU user mode is not real hardware. In particular it may not model alig
 
 - **Security argument.** It is assembled from published theorems and is not peer reviewed; its open points are listed in SECURITY-ARGUMENT.md.
 - **Platform.** One x86-64 machine under WSL2, so the timings carry WSL noise. No ARM.
-- **Valgrind's reach.** It sees only executed paths and branch or address dependence. dudect was not run on PHX-Tri.
+- **Valgrind's reach.** It sees only executed paths and branch or address dependence.
+- **dudect's reach.** The PHX-Tri dudect runs failed their positive control (section 3b), so they rule out only large timing differences.
 - **Dependencies.** The ML-KEM and X25519 code comes from liboqs and OpenSSL, and its constant-time behaviour is their responsibility. Their reports here are triaged, not proven absent.
 - **Novelty.** PHX-Tri is not a new primitive. A TLS-level hybrid of the same three components exists (draft-preussmattsson-tls-hqckem-01). PHX-Tri differs in being a standalone KEM with a single QSF-style combiner.
