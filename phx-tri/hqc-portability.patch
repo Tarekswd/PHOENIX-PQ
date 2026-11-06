@@ -1,0 +1,33 @@
+diff -ru a/src/ref/hqc.h b/src/ref/hqc.h
+--- a/src/ref/hqc.h	2026-10-26 14:22:52.000000000 +0200
++++ b/src/ref/hqc.h	2026-11-06 07:07:16.082151860 +0200
+@@ -6,7 +6,6 @@
+ #ifndef HQC_HQC_H
+ #define HQC_HQC_H
+ 
+-#include <immintrin.h>
+ #include <stdint.h>
+ #include "parameters.h"
+ #include "parsing.h"
+diff -ru a/src/ref/parsing.h b/src/ref/parsing.h
+--- a/src/ref/parsing.h	2026-10-26 14:22:52.000000000 +0200
++++ b/src/ref/parsing.h	2026-11-06 07:07:16.049818871 +0200
+@@ -6,7 +6,6 @@
+ #ifndef HQC_PARSING_H
+ #define HQC_PARSING_H
+ 
+-#include <immintrin.h>
+ #include <stdint.h>
+ #include "parameters.h"
+ 
+diff -ru a/src/ref/vector.h b/src/ref/vector.h
+--- a/src/ref/vector.h	2026-10-26 14:22:52.000000000 +0200
++++ b/src/ref/vector.h	2026-11-06 07:07:16.017485883 +0200
+@@ -6,7 +6,6 @@
+ #ifndef HQC_VECTOR_H
+ #define HQC_VECTOR_H
+ 
+-#include <immintrin.h>
+ #include <stdint.h>
+ #include "symmetric.h"
+ 

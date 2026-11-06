@@ -38,10 +38,17 @@ Secrets marked undefined: the keygen seed, the encapsulation seed, and the decap
 |---|---|
 | HQC `vect_generate_random_support1` | By design: the rejection sampler's iteration count (reports/hqc-ct-audit.md, class A) |
 | ML-KEM `mlk_rej_uniform`, `mlk_rej_uniform_asm`, `poly_rej_uniform(_x4)` under `gen_matrix` | False positive: expansion of the **public** matrix from rho. Taint flows because rho is derived from the secret seed. CT-KAT reports the same pattern for mlkem-native |
-| OpenSSL libcrypto, called from `x25519` (`EVP_PKEY_derive`) | One branch, most likely OpenSSL's all-zero-result check, which depends only on whether the public point has low order {unverified: libcrypto has no symbols here} |
+| OpenSSL `ecx_derive` (providers/implementations/exchange/ecx_exch.c:157), called from `x25519` | **Confirmed benign** (see section 3a) |
 | HQC vector.c:144, Clang -O2/-O3 only | Likely tool artifact (see section 1) |
 
 No report was attributed to PHX-Tri's own code or to the hardened HQC selection code.
+
+### 3a. The OpenSSL branch, identified
+
+- **Getting symbols.** Debug symbols for the installed libcrypto came from Ubuntu's ddebs archive (`libssl3t64-dbgsym`). They were available only for 3.0.13-0ubuntu3.16, so the system OpenSSL was updated from -0ubuntu3.15 to that version and the tests re-run.
+- **Where it is.** With symbols, Valgrind places the report at `ecx_derive (ecx_exch.c:157)`, i.e. `if (ossl_x25519(secret, privkey, peer_pubkey) == 0)`.
+- **What it tests.** In OpenSSL 3.0.13 (crypto/ec/curve25519.c:5616-5623), `ossl_x25519` performs the scalar multiplication and then returns `CRYPTO_memcmp(kZeros, out_shared_key, 32) != 0`, commented "The all-zero output results when the input is a point of small order".
+- **Conclusion.** The comparison is constant-time, and the branch reveals only whether the result is all-zero. That happens exactly for small-order peer points, a property of the *public* input. Benign.
 
 ## 4. Performance (GCC -O3, AMD Ryzen 7 PRO 4750U, WSL2, pinned core, median of 201)
 
@@ -61,6 +68,22 @@ No report was attributed to PHX-Tri's own code or to the hardened HQC selection 
 | Public key | 5,730 B | 1,216 B |
 | Ciphertext | 10,098 B | 1,120 B |
 | Hardness assumptions | Module-LWE, QC syndrome decoding, ECDH | Module-LWE, ECDH |
+
+## 4a. ARM (AArch64, ARMv7) under QEMU
+
+`phx-tri/arm.sh` cross-compiles for both targets and runs the tests in QEMU user mode (8.2.2). Toolchain: GCC 13.3 cross-compilers; OpenSSL 3.0.13 built from the release tarball (SHA-256 checked against the published value); liboqs `8adabb7`; static linking.
+
+| Target | Self-tests (quick: 20 round trips + all other checks) | Test vectors vs the x86 file |
+|---|---|---|
+| AArch64 (`linux-aarch64`) | all pass | identical, 8/8 |
+| ARMv7 hard-float (`linux-armv4 -march=armv7-a+fp`) | all pass | identical, 8/8 |
+
+Two portability findings along the way:
+
+1. **HQC's "portable" reference code does not compile on ARM.** In v5.1.0, `src/ref/{vector,parsing,hqc}.h` include `<immintrin.h>`, which is x86-only, although no reference `.c` file uses an intrinsic. `phx-tri/hqc-portability.patch` removes the three includes. HQC issue #4 (macOS compatibility) may be related; not confirmed.
+2. **Symbol collision with static OpenSSL.** HQC exports generic global names. `gf_mul` collides with OpenSSL's static libcrypto (`f_impl64.o`, Curve448); the linker refused here, but in other setups a wrong binding is possible. `build.sh` now partially links HQC into one object and keeps only `hqc_kem_keygen/encaps/decaps` global. Verified with `nm`: those three are the only defined globals left.
+
+Limits: QEMU user mode is not real hardware. In particular it may not model alignment traps, so HQC #31 (`uint8_t` buffers cast to `uint64_t *`, also present in v5.1.0's `hqc-kem.c`) is not ruled out on real Armv7.
 
 ## 5. Limitations
 

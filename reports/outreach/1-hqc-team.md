@@ -57,6 +57,11 @@ dudect fixed-vs-random Welch test on HQC-1 RM decoding (noise weight 132, 2e6 me
 
 This was measured under WSL2 with CPU boost enabled, so it shows input dependence, not an attack cost.
 
+**5. Two minor portability points (v5.1.0 reference code)**
+
+- `src/ref/vector.h`, `parsing.h` and `hqc.h` include the x86-only `<immintrin.h>`, although no reference `.c` file uses an intrinsic. The portable implementation therefore does not compile for ARM. With the three includes removed (`phx-tri/hqc-portability.patch`), it builds for AArch64 and ARMv7 and passes my tests under QEMU, with test vectors identical to x86. Possibly related to #4.
+- The library exports generic global names. `gf_mul` collides with OpenSSL's static libcrypto (its Curve448 `f_impl64.o`) when both are linked statically. A namespace prefix, as PQClean and liboqs use, would avoid that for integrators.
+
 **Context for hybrids.** Connolly et al., "Starfighters" (IEEE S&P 2026, ePrint 2025/1397), prove C2PRI for your 2025-08-22 transform and show HQC works in X-Wing's QSF combiner. Results 1 and 2 above add the implementation side: the decoder defect does not undermine that, and result 3 marks the code a constant-time hybrid would need to harden.
 
 Limitations of all of the above: one x86-64 host (Zen 2) under WSL2; Valgrind sees only executed paths; the crafted-ciphertext test covers HQC-1.

@@ -57,14 +57,15 @@ int main(int argc, char **argv) {
 
     uint8_t seed[32], eseed[PHX_TRI_ENCAPS_SEEDBYTES], sk[32], ss[32], ss2[32], pk_m_other[1184], sk_m_other[2400];
 
-    /* 1. random round trips */
-    for (int i = 0; i < 1000; i++) {
+    /* 1. random round trips ("quick": 20, for emulated targets) */
+    int trips = argc > 1 && !strcmp(argv[1], "quick") ? 20 : 1000;
+    for (int i = 0; i < trips; i++) {
         CHECK(phx_tri_keygen(pk, sk) == 0);
         CHECK(phx_tri_encaps(ss, ct, pk) == 0);
         CHECK(phx_tri_decaps(ss2, ct, sk) == 0);
         CHECK(memcmp(ss, ss2, 32) == 0);
     }
-    printf("ok  1000 random keygen/encaps/decaps round trips\n");
+    printf("ok  %d random keygen/encaps/decaps round trips\n", trips);
 
     /* 2. determinism of the derand API */
     fixed_seeds(7, seed, eseed);

@@ -23,6 +23,8 @@
 | 2026-11-04 | - | Code review fixes: dudect inputs prepared before timing (control bias removed; AVX2 \|t\| = 88.4, ref <= 1.5); dependence-robust zero-event bounds; popcount block weights. Spec 2025-08-22 checked against code. MIT license, CITATION.cff, CI workflow (verified locally) |
 | 2026-11-05 | 1 | C2PRI of HQC v5 found already proven (Starfighters); paper and outreach corrected (F3) |
 | 2026-11-06 | 2-6 | PHX-Tri: proposal approved; HQC CT hardening patch (E1/E2 removed, KATs pass); X25519 + ML-KEM-768 + HQC-3 KEM implemented with tests, vectors, CT check, benchmark and CI (verified locally). Report: reports/phx-tri-report.md |
+| 2026-11-06 | 5 | OpenSSL branch identified (ecx_exch.c:157, benign all-zero check); ARM: AArch64 + ARMv7 pass under QEMU with x86-identical vectors; hqc-portability.patch; HQC symbols localized (gf_mul clash with static OpenSSL); dudect `ct` test: no dependence (\|t\| <= 1.25) |
+| PAUSED | 5 | Resume: read ~/phoenix/dudect/{reject,key}.txt (re-run `taskset -c 3 ~/phoenix/phx-gcc/dudect_phx_tri reject 20000` / `key 6000` if missing), add results to reports/phx-tri-report.md section 3b, commit |
 | next | 8 | Expert review of phx-tri/SECURITY-ARGUMENT.md; post outreach drafts; push |
 
 ## Next (after approval)

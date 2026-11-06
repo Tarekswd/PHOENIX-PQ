@@ -7,7 +7,7 @@ Experimental three-way hybrid KEM: **X25519 + ML-KEM-768 + HQC-3**, with an X-Wi
 | Component | Standard / version | Implementation used |
 |---|---|---|
 | ML-KEM-768 | FIPS 203 | liboqs `8adabb7` (`OQS_KEM_ml_kem_768_*_derand`) |
-| HQC-3 | HQC specification 2025-08-22 (FIPS 207 pending) | official v5.1.0 reference code + `hqc-ct-hardening.patch` |
+| HQC-3 | HQC specification 2025-08-22 (FIPS 207 pending) | official v5.1.0 reference code + `hqc-ct-hardening.patch` + `hqc-portability.patch`, linked with only `hqc_kem_*` global |
 | X25519 | RFC 7748 | OpenSSL 3 |
 | SHA3-256, SHAKE256 | FIPS 202 | OpenSSL 3 |
 
