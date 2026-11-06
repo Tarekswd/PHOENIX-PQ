@@ -27,7 +27,7 @@ Unrelated to the AVX2 decoder defects in upstream #39/#46: liboqs ships only the
 
 ---
 
-## Issue B
+## Issue B (WITHDRAWN 2026-11-06: do not file; already known to the liboqs maintainers)
 
 **Title:** HQC: root cause of the suppressed `vect_write_support_to_vector` memcheck reports (Clang turns the mask into a branch)
 

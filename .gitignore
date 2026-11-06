@@ -12,6 +12,8 @@
 experiments/**/results/
 experiments/**/out/
 private/
+# Private correspondence (may reference non-public reports)
+reports/outreach/3-reply-*.md
 
 # Build artifacts
 build*/

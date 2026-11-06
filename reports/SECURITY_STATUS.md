@@ -9,8 +9,8 @@ No construction of our own exists yet, and no security claims are made.
 | AVX2 find_peaks strict-aliasing miscompile at gcc -O2/-Os | Known upstream (HQC #39, #46); independently reproduced | Yes |
 | AVX2 find_peaks secret-dependent branch at -O3 | Known upstream (HQC #11) | Yes |
 | Rejection-sampler variable iteration count | By design | Yes |
-| E1: clang `cmp; je` on secret support words in x, y sampling (ref, clang -O1..-O3, -Os) | Confirmed; already suppressed in liboqs CT tests; not in HQC #11 | Yes (pattern already public via liboqs) |
+| E1: clang `cmp; je` on secret support words in x, y sampling (ref, clang -O1..-O3, -Os) | Confirmed; already suppressed in liboqs CT tests; not in HQC #11. Already known to the liboqs maintainers (2026-11-06); hardening patch shared with them | Pattern public via liboqs suppressions. This project files no public issue for it |
 | E2: clang -O1 branch in `gf_mul` | Confirmed; non-documented build | Yes |
 | AVX2 find_peaks branch (#11) timing | Measured: dudect \|t\| = 88.4 vs <= 1.5 for ref control (inputs prepared before timing) | Yes |
 | AVX2 find_peaks width defect (#46 defect 1): DFR impact | NEW measurement: negligible (q/p = 8e-9 HQC-1, ~0 HQC-3/5); see reports/hqc-findpeaks-dfr.md | Yes (underlying bug already public) |
-| liboqs inherits HQC #31 casts (Armv7 alignment UB) | Observed in source; no failure under QEMU; untested on hardware | Yes (upstream issue public) |
+| liboqs inherits HQC #31 casts (Armv7 alignment UB) | Observed in source; no failure under QEMU; untested on hardware. liboqs maintainers confirm (2026-11-06) it is new to them and invite a public issue; upstream v5.1.0 still has the casts | Yes (upstream issue public) |
