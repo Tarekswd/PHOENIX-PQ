@@ -1,4 +1,9 @@
-**Send via:** a new work item on https://gitlab.com/pqc-hqc/hqc (the README asks for reports there), or the HQC mailing list if you have its address. Attach `paper/main.pdf`.
+**Send via:** a new work item on https://gitlab.com/pqc-hqc/hqc (the README asks for reports there), or the HQC mailing list if you have its address.
+
+**Attachments (3):**
+1. `C:\Users\Admin\Desktop\encryption_research\paper\main.pdf`: draft paper
+2. `C:\Users\Admin\Desktop\encryption_research\phx-tri\hqc-ct-hardening.patch`: constant-time fix (item 3)
+3. `C:\Users\Admin\Desktop\encryption_research\phx-tri\hqc-portability.patch`: ARM build fix (item 5)
 
 **Subject:** HQC v5.1.0 implementation audit: DFR impact of #46, a Clang constant-time issue not in #11, and timing of the #11 Reed-Muller branch
 
@@ -6,7 +11,7 @@
 
 Dear HQC team,
 
-I audited the official HQC implementation (v5.0.0 `f46e542` and v5.1.0 `06567ccb`; HQC-1/3/5). The build matrix was {ref, avx256} x {GCC 13.3.0, Clang 18.1.3} x {-O0, -O1, -O2, -O3, -Os}. Each build was checked against your KAT files, run under Valgrind memcheck with secrets marked undefined, scanned for division instructions, and timed with dudect. Most of what I found you already track. Below are the reproductions in brief, then the four results that may be new to you. All code, data and a draft paper are at https://github.com/Tarekswd/PHOENIX-PQ.
+I audited the official HQC implementation (v5.0.0 `f46e542` and v5.1.0 `06567ccb`; HQC-1/3/5). The build matrix was {ref, avx256} x {GCC 13.3.0, Clang 18.1.3} x {-O0, -O1, -O2, -O3, -Os}. Each build was checked against your KAT files, run under Valgrind memcheck with secrets marked undefined, scanned for division instructions, and timed with dudect. Most of what I found you already track. Below are the reproductions in brief, then five points that may be new to you. Two patches and a draft paper are attached; all code and data are at https://github.com/Tarekswd/PHOENIX-PQ.
 
 **Already tracked (independent reproduction)**
 
@@ -44,7 +49,7 @@ Using y, I built 5,000 HQC-1 ciphertexts with v = Truncate(u*y) + R, where R mak
 - At -O1/-Os it also appears in `vect_sample_fixed_weight2` (r1, r2, e).
 - Prior art: liboqs already suppresses these memcheck reports ("not validated against branching on secret", `tests/constant_time/kem/issues/hqc-*`). I did not find it in your tracker.
 - Minor: Clang -O1 also turns `gf_carryless_mul` (inlined into `gf_mul`) into branches on field-element bits.
-- **Tested fix.** `phx-tri/hqc-ct-hardening.patch` in the repository applies to v5.1.0 `src/ref` and adds three value barriers (`__asm__("" : "+r"(mask))`) on the selection masks.
+- **Tested fix (attached: `hqc-ct-hardening.patch`).** It applies to v5.1.0 `src/ref` with `patch -p1` and adds three value barriers (`__asm__("" : "+r"(mask))`) on the selection masks.
   - With it, both branches are gone under GCC 13.3 and Clang 18.1.3 at -O0 to -Os, and all 10 HQC-3 reference builds pass your KATs.
   - Note: a barrier on the *input* `tmp` was not enough. Clang's cmov-converter still produced a branch from the `& mask` select, so the barrier has to be on the mask itself.
   - I would be glad to open a merge request if you prefer.
@@ -59,7 +64,7 @@ This was measured under WSL2 with CPU boost enabled, so it shows input dependenc
 
 **5. Two minor portability points (v5.1.0 reference code)**
 
-- `src/ref/vector.h`, `parsing.h` and `hqc.h` include the x86-only `<immintrin.h>`, although no reference `.c` file uses an intrinsic. The portable implementation therefore does not compile for ARM. With the three includes removed (`phx-tri/hqc-portability.patch`), it builds for AArch64 and ARMv7 and passes my tests under QEMU, with test vectors identical to x86. Possibly related to #4.
+- `src/ref/vector.h`, `parsing.h` and `hqc.h` include the x86-only `<immintrin.h>`, although no reference `.c` file uses an intrinsic. The portable implementation therefore does not compile for ARM. With the three includes removed (attached: `hqc-portability.patch`), HQC-3 builds for AArch64 and ARMv7. Inside my hybrid KEM's test suite it passes under QEMU, with test vectors identical to x86. I did not build HQC-1/5 for ARM. Possibly related to #4.
 - The library exports generic global names. `gf_mul` collides with OpenSSL's static libcrypto (its Curve448 `f_impl64.o`) when both are linked statically. A namespace prefix, as PQClean and liboqs use, would avoid that for integrators.
 
 **Context for hybrids.** Connolly et al., "Starfighters" (IEEE S&P 2026, ePrint 2025/1397), prove C2PRI for your 2025-08-22 transform and show HQC works in X-Wing's QSF combiner. Results 1 and 2 above add the implementation side: the decoder defect does not undermine that, and result 3 marks the code a constant-time hybrid would need to harden.

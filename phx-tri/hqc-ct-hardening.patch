@@ -1,4 +1,4 @@
-diff -ru hqc-orig/src/ref/gf.c hqc-hard/src/ref/gf.c
+diff -ru a/src/ref/gf.c b/src/ref/gf.c
 --- a/src/ref/gf.c	2026-10-26 14:22:52.000000000 +0200
 +++ b/src/ref/gf.c	2026-11-06 06:10:38.306260373 +0200
 @@ -115,7 +115,9 @@
@@ -23,7 +23,7 @@ diff -ru hqc-orig/src/ref/gf.c hqc-hard/src/ref/gf.c
          }
  
          l ^= g << i;
-diff -ru hqc-orig/src/ref/vector.c hqc-hard/src/ref/vector.c
+diff -ru a/src/ref/vector.c b/src/ref/vector.c
 --- a/src/ref/vector.c	2026-10-26 14:22:52.000000000 +0200
 +++ b/src/ref/vector.c	2026-11-06 06:10:38.306260373 +0200
 @@ -153,6 +153,7 @@

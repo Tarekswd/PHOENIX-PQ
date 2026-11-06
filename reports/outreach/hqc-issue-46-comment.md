@@ -1,3 +1,7 @@
+**Send via:** a comment on https://gitlab.com/pqc-hqc/hqc/-/issues/46. **Attachments:** none (it links to the repository). Copy from the line after `---`.
+
+---
+
 **Estimate of the DFR impact of defect 1 (peak search width)**
 
 The issue and pq-verify's AUDITS.md both note that the effect of defect 1 on the decryption failure rate was not estimated. We measured it on v5.1.0 (`06567ccb`). Short version: for honestly generated ciphertexts it is negligible at all three levels.
