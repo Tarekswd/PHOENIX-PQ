@@ -21,7 +21,9 @@
 | 2026-11-04 | 2 (Dir. 1) | G1.2: v5 transform not covered by ABK25/KSW; classical-ROM C2PRI proof sketch (research/g1.2-hqc-v5-c2pri.md) |
 | 2026-11-04 | 7 | Paper draft, 6 pages, compiles cleanly: paper/main.tex, paper/main.pdf. Sole author: Tarek Ahmadieh |
 | 2026-11-04 | - | Code review fixes: dudect inputs prepared before timing (control bias removed; AVX2 \|t\| = 88.4, ref <= 1.5); dependence-robust zero-event bounds; popcount block weights. Spec 2025-08-22 checked against code. MIT license, CITATION.cff, CI workflow (verified locally) |
-| next | 8 | Independent review of the C2PRI sketch by a cryptographer; post outreach drafts; push |
+| 2026-11-05 | 1 | C2PRI of HQC v5 found already proven (Starfighters); paper and outreach corrected (F3) |
+| 2026-11-06 | 2-6 | PHX-Tri: proposal approved; HQC CT hardening patch (E1/E2 removed, KATs pass); X25519 + ML-KEM-768 + HQC-3 KEM implemented with tests, vectors, CT check, benchmark and CI (verified locally). Report: reports/phx-tri-report.md |
+| next | 8 | Expert review of phx-tri/SECURITY-ARGUMENT.md; post outreach drafts; push |
 
 ## Next (after approval)
 - Resolve Q1-Q3 by reading primary sources (FIPS 207 status, ABK25 full text, CT-KAT).

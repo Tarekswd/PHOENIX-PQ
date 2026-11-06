@@ -44,6 +44,10 @@ Using y, I built 5,000 HQC-1 ciphertexts with v = Truncate(u*y) + R, where R mak
 - At -O1/-Os it also appears in `vect_sample_fixed_weight2` (r1, r2, e).
 - Prior art: liboqs already suppresses these memcheck reports ("not validated against branching on secret", `tests/constant_time/kem/issues/hqc-*`). I did not find it in your tracker.
 - Minor: Clang -O1 also turns `gf_carryless_mul` (inlined into `gf_mul`) into branches on field-element bits.
+- **Tested fix.** `phx-tri/hqc-ct-hardening.patch` in the repository applies to v5.1.0 `src/ref` and adds three value barriers (`__asm__("" : "+r"(mask))`) on the selection masks.
+  - With it, both branches are gone under GCC 13.3 and Clang 18.1.3 at -O0 to -Os, and all 10 HQC-3 reference builds pass your KATs.
+  - Note: a barrier on the *input* `tmp` was not enough. Clang's cmov-converter still produced a branch from the `& mask` select, so the barrier has to be on the mask itself.
+  - I would be glad to open a merge request if you prefer.
 
 **4. Timing of the #11 Reed-Muller branch is measurable**
 

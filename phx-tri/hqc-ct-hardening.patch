@@ -1,0 +1,36 @@
+diff -ru hqc-orig/src/ref/gf.c hqc-hard/src/ref/gf.c
+--- a/src/ref/gf.c	2026-10-26 14:22:52.000000000 +0200
++++ b/src/ref/gf.c	2026-11-06 06:10:38.306260373 +0200
+@@ -115,7 +115,9 @@
+ 
+     for (int i = 0; i < 4; i++) {
+         uint32_t tmp2 = tmp1 - i;
+-        g ^= (u[i] & -(1 - ((tmp2 | -tmp2) >> 31)));
++        uint32_t mask = -(1 - ((tmp2 | -tmp2) >> 31));
++        __asm__("" : "+r"(mask));  // value barrier: mask stays data, not control flow
++        g ^= (u[i] & mask);
+     }
+ 
+     l = g;
+@@ -126,7 +128,9 @@
+         uint16_t tmp3 = (a >> i) & 3;
+         for (int j = 0; j < 4; ++j) {
+             uint32_t tmp2 = tmp3 - j;
+-            g ^= (u[j] & -(1 - ((tmp2 | -tmp2) >> 31)));
++            uint32_t mask = -(1 - ((tmp2 | -tmp2) >> 31));
++            __asm__("" : "+r"(mask));  // value barrier: mask stays data, not control flow
++            g ^= (u[j] & mask);
+         }
+ 
+         l ^= g << i;
+diff -ru hqc-orig/src/ref/vector.c hqc-hard/src/ref/vector.c
+--- a/src/ref/vector.c	2026-10-26 14:22:52.000000000 +0200
++++ b/src/ref/vector.c	2026-11-06 06:10:38.306260373 +0200
+@@ -153,6 +153,7 @@
+             uint32_t tmp = i - index_tab[j];
+             int val1 = 1 ^ ((tmp | -tmp) >> 31);
+             uint64_t mask = -val1;
++            __asm__("" : "+r"(mask));  // value barrier: mask stays data, not control flow
+             val |= (bit_tab[j] & mask);
+         }
+         v[i] |= val;

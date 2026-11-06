@@ -44,3 +44,27 @@ jobs:
         run: |
           bash experiments/hqc-dfr/crafted.sh ../hqc out/crafted 200 20 | tee crafted.log
           grep -q 'RESULT: identical' crafted.log
+
+  phx-tri:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y clang cmake libssl-dev
+
+      - name: Fetch pinned HQC v5.1.0 and liboqs 8adabb7
+        run: |
+          git clone --quiet --depth 1 --branch v5.1.0 https://gitlab.com/pqc-hqc/hqc.git ../hqc
+          git init --quiet ../liboqs
+          git -C ../liboqs fetch --quiet --depth 1 https://github.com/open-quantum-safe/liboqs.git 8adabb7703b5bb1ce835fb792e5b7bdf909b150a
+          git -C ../liboqs checkout --quiet FETCH_HEAD
+
+      - name: Build, self-tests and test vectors (GCC and Clang)
+        run: |
+          for cc in gcc clang; do
+            CC=$cc bash phx-tri/build.sh ../hqc ../liboqs out/phx-$cc
+            out/phx-$cc/test_phx_tri
+            out/phx-$cc/test_phx_tri vectors 8 > out/phx-$cc/vectors.txt
+            python3 phx-tri/tests/check_vectors.py out/phx-$cc/vectors.txt phx-tri/vectors/phx_tri_v0.txt
+          done

@@ -1,6 +1,6 @@
 # Phase 2 Proposal: a constant-time three-way hybrid KEM (X25519 + ML-KEM-768 + HQC-3)
 
-Status: AWAITING APPROVAL (charter Phase 2, IMPLEMENTATION.md:307-309, 477). Date: 2026-11-05. Working name: PHX-Tri.
+Status: **APPROVED 2026-11-06** by Tarek Ahmadieh. Scope as below; parameters HQC-3 + ML-KEM-768; libraries chosen: liboqs (ML-KEM-768), OpenSSL 3 (X25519, SHA-3, RNG). Implemented in `phx-tri/`; results in reports/phx-tri-report.md. Date: 2026-11-05. Working name: PHX-Tri.
 
 ## What is already done by others (not claimed here)
 

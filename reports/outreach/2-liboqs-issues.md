@@ -37,6 +37,10 @@ Unrelated to the AVX2 decoder defects in upstream #39/#46: liboqs ships only the
 - **Status upstream.** Not listed in upstream HQC's compiler constant-time tracker (https://gitlab.com/pqc-hqc/hqc/-/work_items/11). I am reporting it there as well.
 - **Caveat.** I observed this in upstream's code. I did not rebuild liboqs's copy with Clang; your suppressions match the same call stacks.
 
-Possible mitigations: keep the mask out of the compiler's reach (for example a value barrier on `tmp`, or computing the selection with an `asm` or `volatile` mask), or rely on the upstream fix once there is one. Since the code is suppressed rather than fixed, a short comment in the suppression file naming the Clang cause might help future readers.
+**A tested fix exists.** `phx-tri/hqc-ct-hardening.patch` (HQC v5.1.0 `src/ref`) puts a value barrier, `__asm__("" : "+r"(mask))`, on the selection masks in `vect_write_support_to_vector` and `gf_carryless_mul`.
+- With it, the branches are gone under GCC 13.3 and Clang 18.1.3 at -O0 to -Os, and the HQC-3 KATs pass.
+- A barrier on `tmp` alone is not enough: Clang's cmov-converter still turns the `& mask` select into a branch, the same mechanism as liboqs #2402.
+
+I have also offered the patch upstream. Once it, or an equivalent, lands, these suppressions could be removed. Until then, a short comment in the suppression file naming the Clang cause might help future readers.
 
 Details and reproduction: https://github.com/Tarekswd/PHOENIX-PQ (`reports/hqc-ct-audit.md`, class E1).

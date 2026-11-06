@@ -6,6 +6,13 @@
 - Alternatives: Novel primitive first (rejected: no evidence of a gap); pure cryptanalysis of other schemes (not selected).
 - Uncertainty: Direction 1 novelty is narrow (see RESEARCH_GAP.md).
 
+## D4 (2026-11-06): Build PHX-Tri, a constant-time three-way hybrid KEM
+- Decided: Specify, implement and evaluate X25519 + ML-KEM-768 + HQC-3 with an X-Wing-style combiner, including a constant-time hardening patch for HQC's reference code. Approved by the project lead.
+- Why: The theory pieces exist (Starfighters, ABK25, X-Wing), and a TLS-level three-way hybrid exists (draft-preussmattsson-tls-hqckem). A standalone QSF-style KEM with hardened, tested code was not found.
+- Libraries: liboqs `8adabb7` for ML-KEM-768 (derand API, upstream CT tests); OpenSSL 3.0.13 for X25519/SHA-3/RNG (already installed; it has no ML-KEM in 3.0); HQC v5.1.0 ref (public domain) plus a patch.
+- Alternatives: mlkem-native directly (would add a dependency); HQC AVX2 (has the known #11 branch); a new primitive (rejected, no gap).
+- Uncertainty: the three-way security argument needs expert review (phx-tri/SECURITY-ARGUMENT.md, open points).
+
 ## D3 (2026-11-03): Direction 2 first; target HQC v5.1.0, not ML-KEM
 - Decided: Project lead chose Direction 2. Proposed target is HQC v5.1.0 (with v5.0.0 diff).
 - Why: CT-KAT (2026-11-01) already screened ML-KEM; HQC absent. v5.1.0 rewrote RS decoding, sampling, RM generator.

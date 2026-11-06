@@ -16,6 +16,7 @@ The project charter, with phases, rules and success criteria, is in [IMPLEMENTAT
 | HQC #46 decoder defect: DFR impact | Done ([report](reports/hqc-findpeaks-dfr.md), tooling in `experiments/hqc-dfr/`) |
 | Direction 1, G1.2: C2PRI of HQC v5 transform | Closed by prior art: Starfighters, IEEE S&P 2026 ([note](research/g1.2-hqc-v5-c2pri.md)) |
 | 7 Paper | Draft ([paper/main.pdf](paper/main.pdf), source `paper/main.tex`) |
+| PHX-Tri: X25519 + ML-KEM-768 + HQC-3 hybrid KEM | Implemented and tested ([spec](phx-tri/SPEC.md), [security argument](phx-tri/SECURITY-ARGUMENT.md), [report](reports/phx-tri-report.md)) |
 
 Research directions, chosen after Phase 1:
 
@@ -32,6 +33,9 @@ research/                literature, gaps, decisions, assumptions, bibliography
   proposals/             Phase 2 proposals
 reports/                 environment report, security status, audit reports
 experiments/hqc-ct/      HQC constant-time audit tooling
+experiments/hqc-dfr/     HQC #46 decryption-failure study
+phx-tri/                 PHX-Tri hybrid KEM: spec, security argument, code, tests, vectors, HQC hardening patch
+paper/                   paper draft (LaTeX)
 ```
 
 ## Reproducing the HQC constant-time audit
